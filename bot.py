@@ -2,15 +2,18 @@ import discord
 from config import *
 from locales import EN, ES
 from engine_bot import command_register, command_help, command_ban, command_query, command_stats
-from flask import Flask, request, jsonify
+from aiohttp import web
 import threading
+import asyncio
 
 intents = discord.Intents.default()
 intents.message_content = True
 
-client = discord.Client(intents=intents)
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+client = discord.Client(intents=intents, loop=loop)
 
-webhook_app = Flask('discord_bot_webhook')
+routes = web.RouteTableDef()
 
 
 @client.event
@@ -46,9 +49,12 @@ async def on_message(message: discord.Message):
         return
 
 
-@webhook_app.route('/enginetribe', methods=['POST'])
-async def webhook_enginetribe():
-    webhook = request.get_json()
+@routes.post('/enginetribe')
+async def webhook_enginetribe(request):
+    channel = client.get_channel(NOTIFICATIONS_CHANNEL_ID)
+    await channel.send('test')
+    webhook = request.json()
+    print(webhook)
     if webhook['type'] == 'new_arrival':  # new arrival
         message = '📤 ' + webhook['author'] + ' subió un nuevo nivel: **' + webhook['level_name'] + '**\n'
         message += 'ID: ' + webhook['level_id']
@@ -72,23 +78,25 @@ async def webhook_enginetribe():
         return 'Success'
     if 'plays' in webhook['type']:  # 100/1000 plays
         message = '🎉 Felicidades, el **' + webhook['level_name'] + '** de **' + webhook[
-            'author'] + '** ha sido reproducido **' +  webhook['type'].replace('_plays', '') + '** veces!\n'
+            'author'] + '** ha sido reproducido **' + webhook['type'].replace('_plays', '') + '** veces!\n'
         message += 'ID: ' + webhook['level_id']
         await client.get_channel(NOTIFICATIONS_CHANNEL_ID).send(message)
         return 'Success'
     if 'clears' in webhook['type']:  # 100/1000 clears
         message = '🎉 Felicidades, el **' + webhook['level_name'] + '** de **' + webhook[
-            'author'] + '** ha salido victorioso **' +  webhook['type'].replace('_clears', '') + '** veces!\n'
+            'author'] + '** ha salido victorioso **' + webhook['type'].replace('_clears', '') + '** veces!\n'
         message += 'ID: ' + webhook['level_id']
         await client.get_channel(NOTIFICATIONS_CHANNEL_ID).send(message)
         return 'Success'
     return 'NotImplemented'
 
 
-def run_webhook():
-    webhook_app.run(host=WEBHOOK_HOST, port=WEBHOOK_PORT, debug=FLASK_DEBUG_MODE)
+webhook_app = web.Application()
+webhook_app.add_routes(routes)
+runner = web.AppRunner(webhook_app)
+loop.run_until_complete(runner.setup())
+site = web.TCPSite(runner)
+loop.run_until_complete(site.start())
+loop.run_in_executor(client.run(BOT_TOKEN))
 
-
-if __name__ == '__main__':
-    threading.Thread(target=run_webhook, daemon=True).start()
-    client.run(BOT_TOKEN)
+loop.run_forever()
