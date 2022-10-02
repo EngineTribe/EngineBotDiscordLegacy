@@ -82,6 +82,7 @@ async def webhook_enginetribe():
         message += 'ID: ' + webhook['level_id']
         await client.get_channel(NOTIFICATIONS_CHANNEL_ID).send(message)
         return 'Success'
+    return 'NotImplemented'
 
 
 def run_webhook():
