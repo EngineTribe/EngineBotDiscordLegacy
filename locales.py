@@ -1,0 +1,77 @@
+from dataclasses import dataclass
+
+
+@dataclass
+class EN:
+    BOT_AUTH_CODE = 'EngineBot|PC|EN'  # fake SMM_WE client auth_code
+    REGISTER_COMMAND = 'e!register'
+    REGISTER_HINT = '🔗 Open the registration webpage (https://web.enginetribe.gq/register.html) to view the ' \
+                    'registration process. \nUsage: `e!register <Registration code>`'
+    REGISTER_SUCCESS = '🎉 The registration was successful, you can now log in to the game with your username'
+    REGISTER_FAILED = '❌ Registration failed.'
+    REGISTER_ONLY_ONE_USER = 'You can only have one user!'
+    REGISTER_ONLY_ONE_USER_2 = ' can no longer register more users.'
+    REGISTER_USER_ALREADY_EXISTS = ' already exists, please change the username.'
+    REGISTER_INVALID_CODE = 'Invalid registration code, please check whether the copy is complete.'
+    BAN_COMMAND = 'e!ban'
+    BAN_HINT = 'Usage: `e!ban <username>`'
+    BAN_SUCCESS = ' was banned successfully.'
+    UNKNOWN_ERROR = 'An unknown error occurred.'
+    PERMISSION_COMMAND = 'e!permission'
+    PERMISSION_DENIED = '❌ You do not have permission to use this command.'
+    PERMISSION_UPDATE_FAILED = '❌ Permission update failed.'
+    QUERY_COMMAND = 'e!query'
+    QUERY_HINT = 'Usage: `e!query <level ID>`'
+    QUERY_INVALID_ID = '❌ Invalid level ID.'
+    QUERY_NOT_FOUND = '❌ Level not found.'
+    QUERY_LEVEL = 'Level'
+    QUERY_FEATURED = ' (Featured level)'
+    QUERY_CLEARS = ' clears'
+    QUERY_PLAYS = ' plays'
+    QUERY_TAGS = 'Tags: '
+    QUERY_STYLE = ', Game style: '
+    STATS_NOT_FOUND = '❌ You have not registered yet.'
+    STATS_TITLE = '📜 Publish statistics of '
+    STATS_COUNT = 'Total number of levels published: '
+    STATS_TOTAL_LIKES = 'Total likes: '
+    STATS_TOTAL_DISLIKES = ', total dislikes: '
+    STATS_TOTAL_PLAYS = ', total plays received: '
+
+
+@dataclass
+class ES:
+    BOT_AUTH_CODE = 'EngineBot|PC|ES'  # fake SMM_WE client auth_code
+    REGISTER_COMMAND = 'e!registrar'
+    REGISTER_HINT = '🔗 Abra la página web de registro (https://web.enginetribe.gq/register.html) para ver el ' \
+                    'proceso de registro. \nUso: `e!registrar <Código de registro>`'
+    REGISTER_SUCCESS = '🎉 El registro fue exitoso, ahora puedes iniciar sesión en el juego con tu nombre de usuario'
+    REGISTER_FAILED = '❌ Registro fallido.'
+    REGISTER_ONLY_ONE_USER = '¡Solo puedes tener un usuario!'
+    REGISTER_ONLY_ONE_USER_2 = ' ya no puede registrar usuarios.'
+    REGISTER_USER_ALREADY_EXISTS = ' ya existe, cambie el nombre de usuario.'
+    REGISTER_INVALID_CODE = 'Código de registro no válido, compruebe si la copia está completa.'
+    BAN_COMMAND = 'e!prohibir'
+    BAN_HINT = 'Uso: `e!prohibir <nombre de usuario>`'
+    BAN_SUCCESS = ' fue prohibido con éxito.'
+    UNKNOWN_ERROR = 'Un error desconocido ocurrió.'
+    PERMISSION_COMMAND = 'e!permiso'
+    PERMISSION_HINT = 'Uso: `e!permiso <nombre de usuario> <permisos> <verdadero o falso>`\n' \
+                      'Permisos: `mod`, `admin`, `booster`, `valid`, `ban`'
+    PERMISSION_DENIED = '❌ No tienes permiso para usar este comando.'
+    PERMISSION_UPDATE_FAILED = '❌ La actualización del permiso falló.'
+    QUERY_COMMAND = 'e!consulta'
+    QUERY_HINT = 'Uso: `e!consulta <ID de nivel>`'
+    QUERY_INVALID_ID = '❌ ID de nivel no válido.'
+    QUERY_NOT_FOUND = '❌ Nivel no encontrado.'
+    QUERY_LEVEL = 'Nivel'
+    QUERY_FEATURED = ' (Nivel prometedor)'
+    QUERY_CLEARS = ' victorias'
+    QUERY_PLAYS = ' intentos'
+    QUERY_TAGS = 'Etiquetas: '
+    QUERY_STYLE = ', Apariencia: '
+    STATS_NOT_FOUND = '❌ Aún no te has registrado.'
+    STATS_TITLE = '📜 Publicar estadísticas para '
+    STATS_COUNT = 'Número total de niveles publicados: '
+    STATS_TOTAL_LIKES = 'Me gusta totales: '
+    STATS_TOTAL_DISLIKES = ', disgustos totales: '
+    STATS_TOTAL_PLAYS = ', jugadas totales recibidas: '
