@@ -45,6 +45,11 @@ async def command_register(message: discord.Message, locale):
         return
     else:
         try:
+            if ' ' not in message.content:
+                await message.reply(locale.COMMAND_NO_SPACE)
+                await message.reply(locale.REGISTER_HINT)
+                await message.delete()
+                return
             raw_register_code = message.content.split(' ')[1].strip()
             register_code = base64.b64decode(raw_register_code.strip().encode()).decode().split("\n")
             username = register_code[0]
@@ -54,27 +59,31 @@ async def command_register(message: discord.Message, locale):
                                                 'user_id': str(message.author.id),
                                                 'api_key': ENGINE_TRIBE_API_KEY}).json()
             if 'success' in response_json:
-                message.delete()
                 await message.reply(locale.REGISTER_SUCCESS + ' `' + str(response_json['username']) + '`.')
+                await message.delete()
                 return
             else:
                 if response_json['error_type'] == '035':
                     await message.reply(
                         locale.REGISTER_FAILED + '\n' + locale.REGISTER_ONLY_ONE_USER + '\n' + message.author.name +
                         locale.REGISTER_ONLY_ONE_USER_2)  # 1 user id -> only one user
+                    await message.delete()
                     return
                 elif response_json['error_type'] == '036':
                     await message.reply(
                         locale.REGISTER_FAILED + '\n' +
                         response_json['username'] + locale.REGISTER_USER_ALREADY_EXISTS)  # username already exists
+                    await message.delete()
                     return
                 else:
                     await message.reply(
                         locale.REGISTER_FAILED + locale.UNKNOWN_ERROR + '\n' + response_json['error_type'] + '\n' +
                         response_json['message'])
+                    await message.delete()
                     return
         except Exception as e:
-            await message.reply(locale.REGISTER_FAILED + locale.REGISTER_INVALID_CODE + str(e))  # Unknown error
+            await message.reply(locale.REGISTER_FAILED + '\n' + locale.REGISTER_INVALID_CODE + str(e))  # Unknown error
+            await message.delete()
             return
 
 
