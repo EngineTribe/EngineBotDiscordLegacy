@@ -2,9 +2,7 @@ import discord
 from config import *
 from locales import EN, ES
 from engine_bot import command_register, command_help, command_ban, command_query, command_stats
-from aiohttp import web
-import threading
-import asyncio
+import logging
 
 intents = discord.Intents.default()
 intents.message_content = True
