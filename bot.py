@@ -9,11 +9,7 @@ import asyncio
 intents = discord.Intents.default()
 intents.message_content = True
 
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-client = discord.Client(intents=intents, loop=loop)
-
-routes = web.RouteTableDef()
+client = discord.Client(intents=intents)
 
 
 @client.event
@@ -49,54 +45,4 @@ async def on_message(message: discord.Message):
         return
 
 
-@routes.post('/enginetribe')
-async def webhook_enginetribe(request):
-    channel = client.get_channel(NOTIFICATIONS_CHANNEL_ID)
-    await channel.send('test')
-    webhook = request.json()
-    print(webhook)
-    if webhook['type'] == 'new_arrival':  # new arrival
-        message = '📤 ' + webhook['author'] + ' subió un nuevo nivel: **' + webhook['level_name'] + '**\n'
-        message += 'ID: ' + webhook['level_id']
-        await client.get_channel(NOTIFICATIONS_CHANNEL_ID).send(message)
-        return 'Success'
-    if webhook['type'] == 'new_deleted':  # new deleted
-        message = '🗑️ ' + webhook['author'] + ' borró el nivel:**' + webhook['level_name'] + '**'
-        await client.get_channel(NOTIFICATIONS_CHANNEL_ID).send(message)
-        return 'Success'
-    if webhook['type'] == 'new_featured':  # new featured
-        message = '🌟 El **' + webhook['level_name'] + '** de **' + webhook[
-            'author'] + '** se ha agregado al nivel prometedor, ¡ven y juega!\n'
-        message += 'ID: ' + webhook['level_id']
-        await client.get_channel(NOTIFICATIONS_CHANNEL_ID).send(message)
-        return 'Success'
-    if 'likes' in webhook['type']:  # 10/100/1000 likes
-        message = '🎉 Felicidades, el **' + webhook['level_name'] + '** de **' + webhook['author'] + '** tiene **' + \
-                  webhook['type'].replace('_likes', '') + '** me gusta!\n'
-        message += 'ID: ' + webhook['level_id']
-        await client.get_channel(NOTIFICATIONS_CHANNEL_ID).send(message)
-        return 'Success'
-    if 'plays' in webhook['type']:  # 100/1000 plays
-        message = '🎉 Felicidades, el **' + webhook['level_name'] + '** de **' + webhook[
-            'author'] + '** ha sido reproducido **' + webhook['type'].replace('_plays', '') + '** veces!\n'
-        message += 'ID: ' + webhook['level_id']
-        await client.get_channel(NOTIFICATIONS_CHANNEL_ID).send(message)
-        return 'Success'
-    if 'clears' in webhook['type']:  # 100/1000 clears
-        message = '🎉 Felicidades, el **' + webhook['level_name'] + '** de **' + webhook[
-            'author'] + '** ha salido victorioso **' + webhook['type'].replace('_clears', '') + '** veces!\n'
-        message += 'ID: ' + webhook['level_id']
-        await client.get_channel(NOTIFICATIONS_CHANNEL_ID).send(message)
-        return 'Success'
-    return 'NotImplemented'
-
-
-webhook_app = web.Application()
-webhook_app.add_routes(routes)
-runner = web.AppRunner(webhook_app)
-loop.run_until_complete(runner.setup())
-site = web.TCPSite(runner)
-loop.run_until_complete(site.start())
-loop.run_in_executor(client.run(BOT_TOKEN))
-
-loop.run_forever()
+client.run(BOT_TOKEN)
