@@ -54,6 +54,7 @@ async def command_register(message: discord.Message, locale):
                                                 'user_id': str(message.author.id),
                                                 'api_key': ENGINE_TRIBE_API_KEY}).json()
             if 'success' in response_json:
+                message.delete()
                 await message.reply(locale.REGISTER_SUCCESS + ' `' + str(response_json['username']) + '`.')
                 return
             else:
