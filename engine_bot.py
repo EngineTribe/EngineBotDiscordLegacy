@@ -169,11 +169,12 @@ async def command_query(message: discord.Message, locale):
                 retval += '  ' + str(level_data['likes']) + '❤ ' + str(level_data['dislikes']) + '💙\n'
                 clears = level_data['victorias']
                 plays = level_data['intentos']
+                deaths = level_data['muertes']
                 if int(plays) == 0:
                     retval += str(clears) + locale.QUERY_CLEARS + '/' + str(plays) + locale.QUERY_PLAYS + '\n'
                 else:
                     retval += str(clears) + locale.QUERY_CLEARS + '/' + str(plays) + locale.QUERY_PLAYS + ' ' + str(
-                        round((int(clears) / int(plays)) * 100, 2)) + '%\n'
+                        round((int(clears) / int(deaths)) * 100, 2)) + '%\n'
                 retval += locale.QUERY_TAGS + level_data['etiquetas'] + locale.QUERY_STYLE + styles[
                     int(level_data['apariencia'])]
                 await message.reply(retval)
