@@ -21,7 +21,8 @@ async def command_help(message: discord.Message):
     if message.author.get_role(GAME_ADMIN_ROLE):
         retval += '''
 📑 Moderator commands available:
-`e!ban` : Ban user.'''
+`e!ban` : Ban user.
+`e!unban` : Unban user.'''
     retval_es = '''📑 Comandos disponibles:
 `e!help` : Mira esta ayuda.
 `e!registrar` : Registrar usuario.
@@ -34,7 +35,8 @@ async def command_help(message: discord.Message):
     if message.author.get_role(GAME_ADMIN_ROLE):
         retval_es += '''
 📑 Comandos de moderador disponibles:
-`e!prohibir` : Prohibir usuario.'''
+`e!prohibir` : Prohibir usuario.
+`e!desbanear` : Desbanear usuario.'''
     await message.reply(retval + '\n\n' + retval_es)
     return
 
@@ -46,41 +48,49 @@ async def command_register(message: discord.Message, locale):
     else:
         try:
             if ' ' not in message.content:
-                await message.reply(locale.COMMAND_NO_SPACE)
-                await message.reply(locale.REGISTER_HINT)
+                await message.reply(locale.COMMAND_NO_SPACE + '\n' + locale.REGISTER_HINT)
                 await message.delete()
                 return
             raw_register_code = message.content.split(' ')[1].strip()
             register_code = base64.b64decode(raw_register_code.strip().encode()).decode().split("\n")
-            username = register_code[0]
-            password_hash = register_code[1]
-            response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/register',
-                                          json={'username': username, 'password_hash': password_hash,
-                                                'user_id': str(message.author.id),
-                                                'api_key': ENGINE_TRIBE_API_KEY}).json()
-            if 'success' in response_json:
-                await message.reply(locale.REGISTER_SUCCESS + ' `' + str(response_json['username']) + '`.')
+            operation = register_code[0]
+            username = register_code[1]
+            password_hash = register_code[2]
+            if operation == 'r':  # register
+                response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/register',
+                                              json={'username': username, 'password_hash': password_hash,
+                                                    'user_id': str(message.author.id),
+                                                    'api_key': ENGINE_TRIBE_API_KEY}).json()
+                if 'success' in response_json:
+                    await message.reply(locale.REGISTER_SUCCESS + ' `' + str(response_json['username']) + '`.')
+                else:
+                    if response_json['error_type'] == '035':
+                        await message.reply(
+                            locale.REGISTER_FAILED + '\n' + locale.REGISTER_ONLY_ONE_USER + '\n' + message.author.name +
+                            locale.REGISTER_ONLY_ONE_USER_2)  # 1 user id -> only one user
+                    elif response_json['error_type'] == '036':
+                        await message.reply(
+                            locale.REGISTER_FAILED + '\n' +
+                            response_json['username'] + locale.REGISTER_USER_ALREADY_EXISTS)  # username already exists
+                    else:
+                        await message.reply(
+                            locale.REGISTER_FAILED + locale.UNKNOWN_ERROR + '\n' + response_json['error_type'] + '\n' +
+                            response_json['message'])
+                await message.delete()
+                return
+            elif operation == 'c':  # change password
+                response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/update_password',
+                                              json={'username': username, 'password_hash': password_hash,
+                                                    'api_key': ENGINE_TRIBE_API_KEY}).json()
+                if 'success' in response_json:
+                    await message.reply(locale.MODIFICATION_SUCCESS + ' `' + str(response_json['username']) + '`.')
+                else:
+                    await message.reply(locale.MODIFICATION_FAILED + ' `' + str(response_json['username']))
                 await message.delete()
                 return
             else:
-                if response_json['error_type'] == '035':
-                    await message.reply(
-                        locale.REGISTER_FAILED + '\n' + locale.REGISTER_ONLY_ONE_USER + '\n' + message.author.name +
-                        locale.REGISTER_ONLY_ONE_USER_2)  # 1 user id -> only one user
-                    await message.delete()
-                    return
-                elif response_json['error_type'] == '036':
-                    await message.reply(
-                        locale.REGISTER_FAILED + '\n' +
-                        response_json['username'] + locale.REGISTER_USER_ALREADY_EXISTS)  # username already exists
-                    await message.delete()
-                    return
-                else:
-                    await message.reply(
-                        locale.REGISTER_FAILED + locale.UNKNOWN_ERROR + '\n' + response_json['error_type'] + '\n' +
-                        response_json['message'])
-                    await message.delete()
-                    return
+                await message.delete()
+                return
         except Exception as e:
             await message.reply(locale.REGISTER_FAILED + '\n' + locale.REGISTER_INVALID_CODE + str(e))  # Unknown error
             await message.delete()
@@ -102,6 +112,30 @@ async def command_ban(message: discord.Message, locale):
                                                 'value': True, 'api_key': ENGINE_TRIBE_API_KEY}).json()
             if 'success' in response_json:
                 await message.reply('✅ ' + username + locale.BAN_SUCCESS)
+                return
+            else:
+                await message.reply(locale.PERMISSION_UPDATE_FAILED + '\n' + str(response_json))
+                return
+        except Exception as e:
+            await message.reply(locale.UNKNOWN_ERROR + '\n' + str(e))
+            return
+
+
+async def command_unban(message: discord.Message, locale):
+    if not message.author.get_role(GAME_ADMIN_ROLE):
+        await message.reply(locale.PERMISSION_DENIED)
+        return
+    if message.content.strip() == locale.UNBAN_COMMAND:
+        await message.reply(locale.UNBAN_HINT)
+        return
+    else:
+        try:
+            username = message.content.split(' ')[1]
+            response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/update_permission',
+                                          json={'username': username, 'permission': 'banned',
+                                                'value': False, 'api_key': ENGINE_TRIBE_API_KEY}).json()
+            if 'success' in response_json:
+                await message.reply('✅ ' + username + locale.UNBAN_SUCCESS)
                 return
             else:
                 await message.reply(locale.PERMISSION_UPDATE_FAILED + '\n' + str(response_json))

@@ -1,8 +1,9 @@
 import discord
 from config import *
 from locales import EN, ES
-from engine_bot import command_register, command_help, command_ban, command_query, command_stats
-import logging
+from engine_bot import command_register, command_help, command_ban, command_query, command_stats, command_unban, \
+    command_permission
+# import logging
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -31,6 +32,10 @@ async def on_message(message: discord.Message):
         await command_ban(message=message, locale=EN)
     elif message.content.startswith('e!prohibir'):  # ban ES
         await command_ban(message=message, locale=ES)
+    elif message.content.startswith('e!unban'):  # unban EN
+        await command_unban(message=message, locale=EN)
+    elif message.content.startswith('e!desbanear'):  # unban ES
+        await command_unban(message=message, locale=ES)
     elif message.content.startswith('e!query'):  # query EN
         await command_query(message=message, locale=EN)
     elif message.content.startswith('e!consulta'):  # query ES
@@ -39,6 +44,10 @@ async def on_message(message: discord.Message):
         await command_stats(message=message, locale=EN)
     elif message.content.startswith('e!estats'):  # stats ES
         await command_stats(message=message, locale=ES)
+    elif message.content.startswith('e!permission'):  # permission EN
+        await command_permission(message=message, locale=EN)
+    elif message.content.startswith('e!permiso'):  # permission ES
+        await command_permission(message=message, locale=ES)
     else:
         return
 
