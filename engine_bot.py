@@ -11,7 +11,7 @@ styles = ['SMB1', 'SMB3', 'SMW', 'NSMBU']
 async def command_help(message: discord.Message):
     retval = '''📑 Commands available:
 `e!help` : Check out this help.
-`e!register` : Register user.
+`e!register` : Register or change password.
 `e!query` : Query level.
 `e!stats` : Publication statistics.'''
     if message.author.id in BOT_ADMIN:
@@ -25,7 +25,7 @@ async def command_help(message: discord.Message):
 `e!unban` : Unban user.'''
     retval_es = '''📑 Comandos disponibles:
 `e!help` : Mira esta ayuda.
-`e!registrar` : Registrar usuario.
+`e!registrar` : Regístrese o cambie la contraseña.
 `e!consulta` : Consultar un nivel.
 `e!estats` : Estadísticas de publicación.'''
     if message.author.id in BOT_ADMIN:
