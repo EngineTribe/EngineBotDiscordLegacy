@@ -209,7 +209,7 @@ async def command_stats(message: discord.Message, locale):
                                             headers={'Content-Type': 'application/x-www-form-urlencoded'}).json()
                 for level_data in levels_data['result']:
                     retval += '- ' + level_data['name'] + ' ' + str(level_data['likes']) + '❤ ' + str(
-                        level_data['dislikes']) + '💙\n  ' + level_data['id']
+                        level_data['dislikes']) + '💙\n  ' + '`' + level_data['id'] + '`'
                     if int(level_data['featured']) == 1:
                         retval += locale.QUERY_FEATURED
                     retval += '\n'
