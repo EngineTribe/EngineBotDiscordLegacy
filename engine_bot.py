@@ -154,7 +154,8 @@ async def command_query(message: discord.Message, locale):
             return
         try:
             response_json = requests.post(url=ENGINE_TRIBE_HOST + '/stage/' + level_id,
-                                          data='auth_code=' + locale.BOT_AUTH_CODE).json()
+                                          data='auth_code=' + locale.BOT_AUTH_CODE,
+                                          headers={'Content-Type': 'application/x-www-form-urlencoded'}).json()
             if 'error_type' in response_json:
                 await message.reply(locale.QUERY_NOT_FOUND)
                 return
@@ -204,8 +205,8 @@ async def command_stats(message: discord.Message, locale):
                 all_plays = 0
                 retval += '\n'
                 levels_data = requests.post(url=ENGINE_TRIBE_HOST + '/stages/detailed_search',
-                                            data='auth_code=' + locale.BOT_AUTH_CODE + '&author=' + user_data[
-                                                'username']).json()
+                                            data={'auth_code': locale.BOT_AUTH_CODE, 'author': user_data['username']},
+                                            headers={'Content-Type': 'application/x-www-form-urlencoded'}).json()
                 for level_data in levels_data['result']:
                     retval += '- ' + level_data['name'] + ' ' + str(level_data['likes']) + '❤ ' + str(
                         level_data['dislikes']) + '💙\n  ' + level_data['id']
