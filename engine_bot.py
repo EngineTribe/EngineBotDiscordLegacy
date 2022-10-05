@@ -13,6 +13,7 @@ async def command_help(message: discord.Message):
 `e!help` : Check out this help.
 `e!register` : Register or change password.
 `e!query` : Query level.
+`e!random` : Random level.
 `e!stats` : Publication statistics.'''
     if message.author.id in BOT_ADMIN:
         retval += '''
@@ -27,6 +28,7 @@ async def command_help(message: discord.Message):
 `e!help` : Mira esta ayuda.
 `e!registrar` : Regístrese o cambie la contraseña.
 `e!consulta` : Consultar un nivel.
+`e!azar` : Nivel aleatorio.
 `e!estats` : Estadísticas de publicación.'''
     if message.author.id in BOT_ADMIN:
         retval_es += '''
@@ -189,7 +191,8 @@ async def command_query(message: discord.Message, locale):
         try:
             response_json = requests.post(url=ENGINE_TRIBE_HOST + '/stage/' + level_id,
                                           data='auth_code=' + locale.BOT_AUTH_CODE,
-                                          headers={'Content-Type': 'application/x-www-form-urlencoded'}).json()
+                                          headers={'Content-Type': 'application/x-www-form-urlencoded',
+                                                   'User-Agent': 'EngineBot/1'}).json()
             if 'error_type' in response_json:
                 await message.reply(locale.QUERY_NOT_FOUND)
                 return
@@ -219,10 +222,51 @@ async def command_query(message: discord.Message, locale):
             return
 
 
+async def command_random(message: discord.Message, locale):
+    try:
+        response_json = requests.post(url=ENGINE_TRIBE_HOST + '/stage/random',
+                                      data='auth_code=' + locale.BOT_AUTH_CODE,
+                                      headers={'Content-Type': 'application/x-www-form-urlencoded',
+                                               'User-Agent': 'EngineBot/1'}).json()
+        if 'error_type' in response_json:
+            await message.reply(locale.QUERY_NOT_FOUND)
+            return
+        else:
+            level_data = response_json['result']
+            retval = '🔍 ' + locale.QUERY_LEVEL + ': **' + level_data['name'] + '**\n'
+            retval += 'ID: `' + level_data['id'] + '`\n'
+            retval += 'Author: ' + level_data['author']
+            if int(level_data['featured']) == 1:
+                retval += locale.QUERY_FEATURED
+            retval += '\n'
+            retval += '⏰ ' + level_data['date']
+            retval += '  ' + str(level_data['likes']) + '❤ ' + str(level_data['dislikes']) + '💙\n'
+            clears = level_data['victorias']
+            plays = level_data['intentos']
+            deaths = level_data['muertes']
+            if int(plays) == 0:
+                retval += str(clears) + locale.QUERY_CLEARS + '/' + str(plays) + locale.QUERY_PLAYS + '\n'
+            else:
+                retval += str(clears) + locale.QUERY_CLEARS + '/' + str(plays) + locale.QUERY_PLAYS + ' ' + str(
+                    round((int(clears) / int(deaths)) * 100, 2)) + '%\n'
+            retval += locale.QUERY_TAGS + level_data['etiquetas'] + locale.QUERY_STYLE + styles[
+                int(level_data['apariencia'])]
+            await message.reply(retval)
+            return
+    except Exception as e:
+        await message.reply(locale.UNKNOWN_ERROR + str(e))
+        return
+
+
 async def command_stats(message: discord.Message, locale):
     try:
+        if message.content == locale.STATS_COMMAND:
+            request_body = {'user_id': str(message.author.id)}
+        else:
+            username = message.content.split(' ')[1].split()
+            request_body = {'username': username}
         response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/info',
-                                      json={'user_id': str(message.author.id)}).json()
+                                      json=request_body).json()
         if 'error_type' in response_json:
             await message.reply(locale.STATS_NOT_FOUND)
             return
@@ -240,7 +284,8 @@ async def command_stats(message: discord.Message, locale):
                 retval += '\n'
                 levels_data = requests.post(url=ENGINE_TRIBE_HOST + '/stages/detailed_search',
                                             data={'auth_code': locale.BOT_AUTH_CODE, 'author': user_data['username']},
-                                            headers={'Content-Type': 'application/x-www-form-urlencoded'}).json()
+                                            headers={'Content-Type': 'application/x-www-form-urlencoded',
+                                                     'User-Agent': 'EngineBot/1'}).json()
                 for level_data in levels_data['result']:
                     retval += '- ' + level_data['name'] + ' ' + str(level_data['likes']) + '❤ ' + str(
                         level_data['dislikes']) + '💙\n  ' + '`' + level_data['id'] + '`'

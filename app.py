@@ -2,7 +2,7 @@ import discord
 from config import *
 from locales import EN, ES
 from engine_bot import command_register, command_help, command_ban, command_query, command_stats, command_unban, \
-    command_permission
+    command_permission, command_random
 # import logging
 
 intents = discord.Intents.default()
@@ -48,6 +48,10 @@ async def on_message(message: discord.Message):
         await command_permission(message=message, locale=EN)
     elif message.content.startswith('e!permiso'):  # permission ES
         await command_permission(message=message, locale=ES)
+    elif message.content.startswith('e!random'):  # random EN
+        await command_random(message=message, locale=EN)
+    elif message.content.startswith('e!azar'):  # random ES
+        await command_random(message=message, locale=ES)
     else:
         return
 

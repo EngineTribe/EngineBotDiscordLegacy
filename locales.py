@@ -37,12 +37,14 @@ class EN:
     QUERY_PLAYS = ' plays'
     QUERY_TAGS = 'Tags: '
     QUERY_STYLE = ', Game style: '
+    STATS_COMMAND = 'e!stats'
     STATS_NOT_FOUND = '❌ You have not registered yet.'
     STATS_TITLE = '📜 Publish statistics of '
     STATS_COUNT = 'Total number of levels published: '
     STATS_TOTAL_LIKES = 'Total likes: '
     STATS_TOTAL_DISLIKES = ', total dislikes: '
     STATS_TOTAL_PLAYS = ', total plays received: '
+    RANDOM_COMMAND = 'e!random'
 
 
 @dataclass
@@ -83,9 +85,11 @@ class ES:
     QUERY_PLAYS = ' intentos'
     QUERY_TAGS = 'Etiquetas: '
     QUERY_STYLE = ', Apariencia: '
+    STATS_COMMAND = 'e!estats'
     STATS_NOT_FOUND = '❌ Aún no te has registrado.'
     STATS_TITLE = '📜 Publicar estadísticas para '
     STATS_COUNT = 'Número total de niveles publicados: '
     STATS_TOTAL_LIKES = 'Me gusta totales: '
     STATS_TOTAL_DISLIKES = ', disgustos totales: '
     STATS_TOTAL_PLAYS = ', jugadas totales recibidas: '
+    RANDOM_COMMAND = 'e!azar'
