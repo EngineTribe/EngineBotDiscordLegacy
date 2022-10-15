@@ -263,7 +263,7 @@ async def command_stats(message: discord.Message, locale):
         if message.content == locale.STATS_COMMAND:
             request_body = {'user_id': str(message.author.id)}
         else:
-            username = message.content.split(' ')[1].split()
+            username = message.content.split(' ')[1].strip()
             request_body = {'username': username}
         response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/info',
                                       json=request_body).json()
