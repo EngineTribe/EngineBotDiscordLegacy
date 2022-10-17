@@ -311,12 +311,12 @@ async def command_server(message: discord.Message):
     try:
         response_json = requests.get(url=ENGINE_TRIBE_HOST + '/server_stats').json()
         retval = '🗄️ **Server Statistics**\n'
-        retval += f'🐧 **OS**: `{response_json["os"]}`\n'
-        retval += f'🐍 **Python Version**: `{response_json["python"]}`\n'
-        retval += f'👥 **Player Count**: `{response_json["player_count"]}`\n'
-        retval += f'🌏 **Level Count**: `{response_json["level_count"]}`\n'
-        retval += f'🕰️ **Uptime**: `{int(response_json["uptime"]/60)}` minutes\n'
-        retval += f'📊 **Connection Per Minute**: `{response_json["connection_per_minute"]}`'
+        retval += f'🐧 OS: `{response_json["os"]}`\n'
+        retval += f'🐍 Python Version: `{response_json["python"]}`\n'
+        retval += f'👥 Player Count: `{response_json["player_count"]}`\n'
+        retval += f'🌏 Level Count: `{response_json["level_count"]}`\n'
+        retval += f'🕰️ Uptime: `{int(response_json["uptime"]/60)}` minutes\n'
+        retval += f'📊 Connection Per Minute: `{response_json["connection_per_minute"]}`'
         await message.reply(retval)
         return
     except Exception as e:
