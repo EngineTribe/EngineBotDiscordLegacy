@@ -14,7 +14,8 @@ async def command_help(message: discord.Message):
 `e!register` : Register or change password.
 `e!query` : Query level.
 `e!random` : Random level.
-`e!stats` : Publication statistics.'''
+`e!stats` : Publication statistics.
+`e!server` : Server statistics.'''
     if message.author.id in BOT_ADMIN:
         retval += '''
 📑 Administrator commands available:
@@ -29,7 +30,8 @@ async def command_help(message: discord.Message):
 `e!registrar` : Regístrese o cambie la contraseña.
 `e!consulta` : Consultar un nivel.
 `e!azar` : Nivel aleatorio.
-`e!estats` : Estadísticas de publicación.'''
+`e!estats` : Estadísticas de publicación.
+`e!server` : Estadísticas del servidor.'''
     if message.author.id in BOT_ADMIN:
         retval_es += '''
 📑 Comandos de administrador disponibles:
