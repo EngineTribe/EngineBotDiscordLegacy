@@ -62,8 +62,6 @@ async def command_register(message: discord.Message, locale):
             operation = register_code[0]
             username = register_code[1]
             password_hash = register_code[2]
-            if len(register_code) == 4:
-                old_password_hash = register_code[3]
             if operation == 'r':  # register
                 response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/register',
                                               json={'username': username, 'password_hash': password_hash,
@@ -92,6 +90,7 @@ async def command_register(message: discord.Message, locale):
                 await message.delete()
                 return
             elif operation == 'c':  # change password
+                old_password_hash = register_code[3]
                 response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/update_password',
                                               json={'username': username, 'old_password_hash': old_password_hash,
                                                     'password_hash': password_hash,
@@ -108,13 +107,8 @@ async def command_register(message: discord.Message, locale):
                 await message.delete()
                 return
         except Exception as e:
-            if response_json is not None:
-                await message.reply(f'{locale.REGISTER_FAILED}\n'
-                                    f'{locale.REGISTER_INVALID_CODE} (`{str(e)}`)\n'
-                                    f'Response: `{json.dumps(response_json)}`')  # Unknown error
-            else:
-                await message.reply(f'{locale.REGISTER_FAILED}\n'
-                                    f'{locale.REGISTER_INVALID_CODE} (`{str(e)}`)')  # Unknown error
+            await message.reply(f'{locale.REGISTER_FAILED}\n'
+                                f'{locale.REGISTER_INVALID_CODE} (`{str(e)}`)')  # Unknown error
             await message.delete()
             return
 
