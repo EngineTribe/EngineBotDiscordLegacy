@@ -3,6 +3,7 @@ import base64
 import discord
 import requests
 from config import *
+import rapidjson as json
 import logging
 
 styles = ['SMB1', 'SMB3', 'SMW', 'NSMBU']
@@ -104,8 +105,13 @@ async def command_register(message: discord.Message, locale):
                 await message.delete()
                 return
         except Exception as e:
-            await message.reply(f'{locale.REGISTER_FAILED}\n'
-                                f'{locale.REGISTER_INVALID_CODE} (`{str(e)}`)')  # Unknown error
+            if response_json is not None:
+                await message.reply(f'{locale.REGISTER_FAILED}\n'
+                                    f'{locale.REGISTER_INVALID_CODE} (`{str(e)}`)\n'
+                                    f'Response: `{json.dumps(response_json)}`')  # Unknown error
+            else:
+                await message.reply(f'{locale.REGISTER_FAILED}\n'
+                                    f'{locale.REGISTER_INVALID_CODE} (`{str(e)}`)')  # Unknown error
             await message.delete()
             return
 
