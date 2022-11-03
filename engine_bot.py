@@ -66,20 +66,25 @@ async def command_register(message: discord.Message, locale):
                                                     'user_id': str(message.author.id),
                                                     'api_key': ENGINE_TRIBE_API_KEY}).json()
                 if 'success' in response_json:
-                    await message.reply(locale.REGISTER_SUCCESS + ' `' + str(response_json['username']) + '`.')
+                    await message.reply(f'{locale.REGISTER_SUCCESS} `{str(response_json["username"])}` .')
                 else:
                     if response_json['error_type'] == '035':
                         await message.reply(
-                            locale.REGISTER_FAILED + '\n' + locale.REGISTER_ONLY_ONE_USER + '\n' + message.author.name +
-                            locale.REGISTER_ONLY_ONE_USER_2)  # 1 user id -> only one user
+                            f'{locale.REGISTER_FAILED}\n'
+                            f'{locale.REGISTER_ONLY_ONE_USER}\n'
+                            f'{response_json["username"]} {locale.REGISTER_ONLY_ONE_USER_2}')
+                        # 1 user id -> only one user
                     elif response_json['error_type'] == '036':
                         await message.reply(
-                            locale.REGISTER_FAILED + '\n' +
-                            response_json['username'] + locale.REGISTER_USER_ALREADY_EXISTS)  # username already exists
+                            f'{locale.REGISTER_FAILED}\n'
+                            f'`{response_json["username"]}` {locale.REGISTER_USER_ALREADY_EXISTS}')
+                        # username already exists
                     else:
                         await message.reply(
-                            locale.REGISTER_FAILED + locale.UNKNOWN_ERROR + '\n' + response_json['error_type'] + '\n' +
-                            response_json['message'])
+                            f'{locale.REGISTER_FAILED}\n'
+                            f'{locale.UNKNOWN_ERROR}\n'
+                            f'{response_json["error_type"]} '
+                            f'{response_json["message"]}')
                 await message.delete()
                 return
             elif operation == 'c':  # change password
@@ -87,16 +92,17 @@ async def command_register(message: discord.Message, locale):
                                               json={'username': username, 'password_hash': password_hash,
                                                     'api_key': ENGINE_TRIBE_API_KEY}).json()
                 if 'success' in response_json:
-                    await message.reply(locale.MODIFICATION_SUCCESS + ' `' + str(response_json['username']) + '`.')
+                    await message.reply(f'{locale.MODIFICATION_SUCCESS} `{str(response_json["username"])}` .')
                 else:
-                    await message.reply(locale.MODIFICATION_FAILED + ' `' + str(response_json['username']))
+                    await message.reply(f'{locale.MODIFICATION_FAILED} `{str(response_json["username"])}` .')
                 await message.delete()
                 return
             else:
                 await message.delete()
                 return
         except Exception as e:
-            await message.reply(locale.REGISTER_FAILED + '\n' + locale.REGISTER_INVALID_CODE + str(e))  # Unknown error
+            await message.reply(f'{locale.REGISTER_FAILED}\n'
+                                f'{locale.REGISTER_INVALID_CODE} (`{str(e)}`)')  # Unknown error
             await message.delete()
             return
 
