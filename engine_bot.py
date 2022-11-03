@@ -55,8 +55,9 @@ async def command_register(message: discord.Message, locale):
                 await message.reply(f'{locale.COMMAND_NO_SPACE}\n{locale.REGISTER_HINT}')
                 await message.delete()
                 return
-            raw_register_code = message.content.split(' ')[1].strip().strip('<>')
-            register_code = base64.b64decode(raw_register_code.strip().encode()).decode().split("\n")
+            raw_register_code = message.content.split(' ')[1].strip()
+            register_code = base64.b64decode(raw_register_code.encode()).decode()\
+                            .replace('\r\n','\n').replace('\r','\n').split("\n")
             operation = register_code[0]
             username = register_code[1]
             password_hash = register_code[2]
