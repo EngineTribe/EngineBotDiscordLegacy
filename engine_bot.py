@@ -52,10 +52,10 @@ async def command_register(message: discord.Message, locale):
     else:
         try:
             if ' ' not in message.content:
-                await message.reply(locale.COMMAND_NO_SPACE + '\n' + locale.REGISTER_HINT)
+                await message.reply(f'{locale.COMMAND_NO_SPACE}\n{locale.REGISTER_HINT}')
                 await message.delete()
                 return
-            raw_register_code = message.content.split(' ')[1].strip()
+            raw_register_code = message.content.split(' ')[1].strip().strip('<>')
             register_code = base64.b64decode(raw_register_code.strip().encode()).decode().split("\n")
             operation = register_code[0]
             username = register_code[1]
@@ -98,6 +98,8 @@ async def command_register(message: discord.Message, locale):
                 await message.delete()
                 return
             else:
+                await message.reply(f'{locale.REGISTER_FAILED}\n'
+                                    f'{locale.REGISTER_INVALID_CODE} (Invalid operation type)')
                 await message.delete()
                 return
         except Exception as e:
@@ -321,13 +323,18 @@ async def command_server(message: discord.Message):
         retval += f'🐍 Python Version: `{response_json["python"]}`\n'
         retval += f'👥 Player Count: `{response_json["player_count"]}`\n'
         retval += f'🌏 Level Count: `{response_json["level_count"]}`\n'
-        retval += f'🕰️ Uptime: `{int(response_json["uptime"]/60)}` minutes\n'
+        retval += f'🕰️ Uptime: `{int(response_json["uptime"] / 60)}` minutes\n'
         retval += f'📊 Connection Per Minute: `{response_json["connection_per_minute"]}`'
         await message.reply(retval)
         return
     except Exception as e:
         await message.reply('Unknown error ' + str(e))
         return
+
+
+async def command_error(message: discord.Message):
+    await message.reply('❌ Comando incorrecto. ¡Por favor revise el mensaje anclado!')
+    return
 
 
 def prettify_level_id(level_id: str):

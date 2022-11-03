@@ -2,7 +2,7 @@ import discord
 from config import *
 from locales import EN, ES
 from engine_bot import command_register, command_help, command_ban, command_query, command_stats, command_unban, \
-    command_permission, command_random, command_server
+    command_permission, command_random, command_server, command_error
 # import logging
 
 intents = discord.Intents.default()
@@ -55,6 +55,7 @@ async def on_message(message: discord.Message):
     elif message.content.startswith('e!server'):  # server stats
         await command_server(message=message)
     else:
+        await command_error(message=message)
         return
 
 
