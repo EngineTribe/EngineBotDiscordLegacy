@@ -57,11 +57,13 @@ async def command_register(message: discord.Message, locale):
                 await message.delete()
                 return
             raw_register_code = message.content.split(' ')[1].strip()
-            register_code = base64.b64decode(raw_register_code.encode()).decode()\
-                            .replace('\r\n','\n').replace('\r','\n').split("\n")
+            register_code = base64.b64decode(raw_register_code.encode()).decode() \
+                .replace('\r\n', '\n').replace('\r', '\n').split("\n")
             operation = register_code[0]
             username = register_code[1]
             password_hash = register_code[2]
+            if len(register_code) == 4:
+                old_password_hash = register_code[3]
             if operation == 'r':  # register
                 response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/register',
                                               json={'username': username, 'password_hash': password_hash,
@@ -91,7 +93,8 @@ async def command_register(message: discord.Message, locale):
                 return
             elif operation == 'c':  # change password
                 response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/update_password',
-                                              json={'username': username, 'password_hash': password_hash,
+                                              json={'username': username, 'old_password_hash': old_password_hash,
+                                                    'password_hash': password_hash,
                                                     'api_key': ENGINE_TRIBE_API_KEY}).json()
                 if 'success' in response_json:
                     await message.reply(f'{locale.MODIFICATION_SUCCESS} `{str(response_json["username"])}` .')
