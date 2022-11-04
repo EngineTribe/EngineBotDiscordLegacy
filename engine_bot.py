@@ -107,8 +107,12 @@ async def command_register(message: discord.Message, locale):
                 await message.delete()
                 return
         except Exception as e:
-            await message.reply(f'{locale.REGISTER_FAILED}\n'
-                                f'{locale.REGISTER_INVALID_CODE} (`{str(e)}`)')  # Unknown error
+            if response_json is not None:
+                await message.reply(f'{locale.REGISTER_FAILED}\n'
+                                    f'{locale.REGISTER_INVALID_CODE} (`{str(e)}`) (`{json.dumps(response_json)}`)')
+            else:
+                await message.reply(f'{locale.REGISTER_FAILED}\n'
+                                    f'{locale.REGISTER_INVALID_CODE} (`{str(e)}`)')  # Unknown error
             await message.delete()
             return
 
