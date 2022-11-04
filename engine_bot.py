@@ -1,7 +1,9 @@
 # This file contains almost everything of Engine Bot for Discord
 import base64
+from binascii import Error as BinAsciiError
+
 import discord
-import requests
+import aiohttp
 from config import *
 import rapidjson as json
 import logging
@@ -10,71 +12,62 @@ styles = ['SMB1', 'SMB3', 'SMW', 'NSMBU']
 
 
 async def command_help(message: discord.Message):
-    retval = '''📑 Commands available:
-`e!help` : Check out this help.
-`e!register` : Register or change password.
-`e!query` : Query level.
-`e!random` : Random level.
-`e!stats` : Publication statistics.
-`e!server` : Server statistics.'''
+    retval = '📑 Commands available:\n' \
+             '`e!help` : Show this help.\n' \
+             '`e!register` : Register or change password.\n' \
+             '`e!query` : Query level.\n' \
+             '`e!random` : Random level.\n' \
+             '`e!stats` : Publication statistics.\n' \
+             '`e!server` : Server statistics.'''
     if message.author.id in BOT_ADMIN:
-        retval += '''
-📑 Administrator commands available:
-`e!permission` : Update permission.'''
+        retval += '\nAdministrator commands available:\n' \
+                  '`e!permission` : Update permission.'
     if message.author.get_role(GAME_ADMIN_ROLE):
-        retval += '''
-📑 Moderator commands available:
-`e!ban` : Ban user.
-`e!unban` : Unban user.'''
-    retval_es = '''📑 Comandos disponibles:
-`e!help` : Mira esta ayuda.
-`e!registrar` : Regístrese o cambie la contraseña.
-`e!consulta` : Consultar un nivel.
-`e!azar` : Nivel aleatorio.
-`e!estats` : Estadísticas de publicación.
-`e!server` : Estadísticas del servidor.'''
+        retval += '\n📑 Moderator commands available:\n' \
+                  '`e!ban` : Ban user.\n' \
+                  '`e!unban` : Unban user.\n'
+    retval_es = '📑 Comandos disponibles:\n' \
+                '`e!help` : Mostrar esta ayuda.\n' \
+                '`e!registrar` : Regístrese o cambie la contraseña.\n' \
+                '`e!consulta` : Consultar un nivel.\n' \
+                '`e!azar` : Nivel aleatorio.\n' \
+                '`e!estats` : Estadísticas de publicación.\n' \
+                '`e!server` : Estadísticas del servidor.'
     if message.author.id in BOT_ADMIN:
-        retval_es += '''
-📑 Comandos de administrador disponibles:
-`e!permiso` : Permiso de actualización.'''
+        retval_es += '\n📑 Comandos de administrador disponibles:\n' \
+                     '`e!permiso` : Permiso de actualización.'
     if message.author.get_role(GAME_ADMIN_ROLE):
-        retval_es += '''
-📑 Comandos de moderador disponibles:
-`e!prohibir` : Prohibir usuario.
-`e!desbanear` : Desbanear usuario.'''
+        retval_es += '\n📑 Comandos de moderador disponibles:\n' \
+                     '`e!prohibir` : Prohibir usuario.\n' \
+                     '`e!desbanear` : Desbanear usuario.'
     await message.reply(retval + '\n\n' + retval_es)
     return
 
 
 async def command_register(message: discord.Message, locale):
-    if message.content.strip() == locale.REGISTER_COMMAND:
+    raw_register_code = message.content.replace(locale.REGISTER_COMMAND, '').strip().split(' ')[0]
+    if not raw_register_code:
         await message.reply(locale.REGISTER_HINT)
         return
     else:
         try:
-            if ' ' not in message.content:
-                await message.reply(f'{locale.COMMAND_NO_SPACE}\n{locale.REGISTER_HINT}')
-                await message.delete()
-                return
-            raw_register_code = message.content.split(' ')[1].strip()
             try:
-                register_code = base64.b64decode(raw_register_code.encode()).decode() \
-                    .replace('\r\n', '\n').replace('\r', '\n').split("\n")
-            except:
+                register_code = base64.b64decode(raw_register_code.encode()).decode().split("\n")
+            except BinAsciiError:
                 try:
-                    register_code = base64.b64decode((raw_register_code+'=').encode()).decode() \
-                        .replace('\r\n', '\n').replace('\r', '\n').split("\n")
-                except:
-                    register_code = base64.b64decode((raw_register_code + '==').encode()).decode() \
-                        .replace('\r\n', '\n').replace('\r', '\n').split("\n")
+                    register_code = base64.b64decode((raw_register_code + '=').encode()).decode().split("\n")
+                except BinAsciiError:
+                    register_code = base64.b64decode((raw_register_code + '==').encode()).decode().split("\n")
             operation = register_code[0]
             username = register_code[1]
             password_hash = register_code[2]
             if operation == 'r':  # register
-                response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/register',
-                                              json={'username': username, 'password_hash': password_hash,
-                                                    'user_id': str(message.author.id),
-                                                    'api_key': ENGINE_TRIBE_API_KEY}).json()
+                async with aiohttp.request(method='POST',
+                                           url=ENGINE_TRIBE_HOST + '/user/register',
+                                           json={'username': username, 'password_hash': password_hash,
+                                                 'user_id': str(message.author.id),
+                                                 'api_key': ENGINE_TRIBE_API_KEY}) as response:
+                    response_json = await response.json()
                 if 'success' in response_json:
                     await message.reply(f'{locale.REGISTER_SUCCESS} `{str(response_json["username"])}` .')
                 else:
@@ -98,19 +91,21 @@ async def command_register(message: discord.Message, locale):
                 await message.delete()
                 return
             elif operation == 'c':  # change password
-                response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/update_password',
-                                              json={'username': username, 'password_hash': password_hash,
-                                                    'user_id': str(message.author.id),
-                                                    'api_key': ENGINE_TRIBE_API_KEY}).json()
+                async with aiohttp.request(method='POST',
+                                           url=ENGINE_TRIBE_HOST + '/user/update_password',
+                                           json={'username': username, 'password_hash': password_hash,
+                                                 'user_id': str(message.author.id),
+                                                 'api_key': ENGINE_TRIBE_API_KEY}) as response:
+                    response_json = await response.json()
                 if 'success' in response_json:
                     await message.reply(f'{locale.MODIFICATION_SUCCESS} `{str(response_json["username"])}` .')
                 else:
-                    await message.reply(f'{locale.MODIFICATION_FAILED}.')
+                    await message.reply(f'{locale.MODIFICATION_FAILED}.')  # 006
                 await message.delete()
                 return
             else:
                 await message.reply(f'{locale.REGISTER_FAILED}\n'
-                                    f'{locale.REGISTER_INVALID_CODE} (Invalid operation type)')
+                                    f'{locale.REGISTER_INVALID_CODE} (Invalid operation type {operation})')
                 await message.delete()
                 return
         except Exception as e:
@@ -134,17 +129,19 @@ async def command_ban(message: discord.Message, locale):
     else:
         try:
             username = message.content.split(' ')[1]
-            response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/update_permission',
-                                          json={'username': username, 'permission': 'banned',
-                                                'value': True, 'api_key': ENGINE_TRIBE_API_KEY}).json()
+            async with aiohttp.request(method='POST',
+                                       url=ENGINE_TRIBE_HOST + '/user/update_permission',
+                                       json={'username': username, 'permission': 'banned',
+                                             'value': True, 'api_key': ENGINE_TRIBE_API_KEY}) as response:
+                response_json = await response.json()
             if 'success' in response_json:
-                await message.reply('✅ ' + username + locale.BAN_SUCCESS)
+                await message.reply(f'✅ {username} {locale.BAN_SUCCESS}')
                 return
             else:
-                await message.reply(locale.PERMISSION_UPDATE_FAILED + '\n' + str(response_json))
+                await message.reply(f'{locale.PERMISSION_UPDATE_FAILED}\n{str(response_json)}')
                 return
         except Exception as e:
-            await message.reply(locale.UNKNOWN_ERROR + '\n' + str(e))
+            await message.reply(f'{locale.UNKNOWN_ERROR}\n{str(e)}')
             return
 
 
@@ -158,17 +155,19 @@ async def command_unban(message: discord.Message, locale):
     else:
         try:
             username = message.content.split(' ')[1]
-            response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/update_permission',
-                                          json={'username': username, 'permission': 'banned',
-                                                'value': False, 'api_key': ENGINE_TRIBE_API_KEY}).json()
+            async with aiohttp.request(method='POST',
+                                       url=ENGINE_TRIBE_HOST + '/user/update_permission',
+                                       json={'username': username, 'permission': 'banned',
+                                             'value': False, 'api_key': ENGINE_TRIBE_API_KEY}) as response:
+                response_json = await response.json()
             if 'success' in response_json:
-                await message.reply('✅ ' + username + locale.UNBAN_SUCCESS)
+                await message.reply(f'✅ {username} {locale.UNBAN_SUCCESS}')
                 return
             else:
-                await message.reply(locale.PERMISSION_UPDATE_FAILED + '\n' + str(response_json))
+                await message.reply(f'{locale.PERMISSION_UPDATE_FAILED}\n{str(response_json)}')
                 return
         except Exception as e:
-            await message.reply(locale.UNKNOWN_ERROR + '\n' + str(e))
+            await message.reply(f'{locale.UNKNOWN_ERROR}\n{str(e)}')
             return
 
 
@@ -214,72 +213,77 @@ async def command_query(message: discord.Message, locale):
             await message.reply(locale.QUERY_INVALID_ID)
             return
         try:
-            response_json = requests.post(url=ENGINE_TRIBE_HOST + '/stage/' + level_id,
-                                          data='auth_code=' + locale.BOT_AUTH_CODE,
-                                          headers={'Content-Type': 'application/x-www-form-urlencoded',
-                                                   'User-Agent': 'EngineBot/1'}).json()
+            async with aiohttp.request(method='POST',
+                                       url=f'{ENGINE_TRIBE_HOST}/stage/{level_id}',
+                                       data='auth_code=' + locale.BOT_AUTH_CODE,
+                                       headers={'Content-Type': 'application/x-www-form-urlencoded',
+                                                'User-Agent': 'EngineBot/1'}) as response:
+                response_json = await response.json()
             if 'error_type' in response_json:
                 await message.reply(locale.QUERY_NOT_FOUND)
                 return
             else:
                 level_data = response_json['result']
-                retval = '🔍 ' + locale.QUERY_LEVEL + ': **' + level_data['name'] + '**\n'
-                retval += 'Author: ' + level_data['author']
+                retval = f'🔍 {locale.QUERY_LEVEL}: **{level_data["name"]}**\n' \
+                         f'Author: {level_data["author"]}'
                 if int(level_data['featured']) == 1:
-                    retval += locale.QUERY_FEATURED
-                retval += '\n'
-                retval += '⏰ ' + level_data['date']
-                retval += '  ' + str(level_data['likes']) + '❤ ' + str(level_data['dislikes']) + '💙\n'
+                    retval += f'{locale.QUERY_FEATURED}\n'
+                else:
+                    retval += '\n'
+                retval += f'⏰ {level_data["date"]}\n' \
+                          f'level_data["likes"]❤  level_data["dislikes"]💙\n'
                 clears = level_data['victorias']
                 plays = level_data['intentos']
                 deaths = level_data['muertes']
-                if int(plays) == 0:
-                    retval += str(clears) + locale.QUERY_CLEARS + '/' + str(plays) + locale.QUERY_PLAYS + '\n'
+                if int(deaths) == 0:
+                    retval += f'{clears}{locale.QUERY_CLEARS} / {plays}{locale.QUERY_PLAYS}\n'
                 else:
-                    retval += str(clears) + locale.QUERY_CLEARS + '/' + str(plays) + locale.QUERY_PLAYS + ' ' + str(
-                        round((int(clears) / int(deaths)) * 100, 2)) + '%\n'
-                retval += locale.QUERY_TAGS + level_data['etiquetas'] + locale.QUERY_STYLE + styles[
-                    int(level_data['apariencia'])]
+                    retval += f'{clears}{locale.QUERY_CLEARS} / {plays}{locale.QUERY_PLAYS}  ' \
+                              f'{round((int(clears) / int(deaths)) * 100, 2)}%\n'
+                retval += f'{locale.QUERY_TAGS}{level_data["etiquetas"]}' \
+                          f'{locale.QUERY_STYLE}{styles[int(level_data["apariencia"])]}'
                 await message.reply(retval)
                 return
         except Exception as e:
-            await message.reply(locale.UNKNOWN_ERROR + str(e))
+            await message.reply(locale.UNKNOWN_ERROR + '\n' + str(e))
             return
 
 
 async def command_random(message: discord.Message, locale):
     try:
-        response_json = requests.post(url=ENGINE_TRIBE_HOST + '/stage/random',
-                                      data='auth_code=' + locale.BOT_AUTH_CODE,
-                                      headers={'Content-Type': 'application/x-www-form-urlencoded',
-                                               'User-Agent': 'EngineBot/1'}).json()
+        async with aiohttp.request(method='POST',
+                                   url=f'{ENGINE_TRIBE_HOST}/stage/random',
+                                   data='auth_code=' + locale.BOT_AUTH_CODE,
+                                   headers={'Content-Type': 'application/x-www-form-urlencoded',
+                                            'User-Agent': 'EngineBot/1'}) as response:
+            response_json = await response.json()
         if 'error_type' in response_json:
-            await message.reply(locale.QUERY_NOT_FOUND)
+            await message.reply(locale.UNKNOWN_ERROR + f'\nError type in response: `{json.dumps(response_json)}`')
             return
         else:
             level_data = response_json['result']
-            retval = '🔍 ' + locale.QUERY_LEVEL + ': **' + level_data['name'] + '**\n'
-            retval += 'ID: `' + level_data['id'] + '`\n'
-            retval += 'Author: ' + level_data['author']
+            retval = f'🔍 {locale.QUERY_LEVEL}: **{level_data["name"]}**\n' \
+                     f'Author: {level_data["author"]}'
             if int(level_data['featured']) == 1:
-                retval += locale.QUERY_FEATURED
-            retval += '\n'
-            retval += '⏰ ' + level_data['date']
-            retval += '  ' + str(level_data['likes']) + '❤ ' + str(level_data['dislikes']) + '💙\n'
+                retval += f'{locale.QUERY_FEATURED}\n'
+            else:
+                retval += '\n'
+            retval += f'⏰ {level_data["date"]}\n' \
+                      f'level_data["likes"]❤  level_data["dislikes"]💙\n'
             clears = level_data['victorias']
             plays = level_data['intentos']
             deaths = level_data['muertes']
-            if int(plays) == 0:
-                retval += str(clears) + locale.QUERY_CLEARS + '/' + str(plays) + locale.QUERY_PLAYS + '\n'
+            if int(deaths) == 0:
+                retval += f'{clears}{locale.QUERY_CLEARS} / {plays}{locale.QUERY_PLAYS}\n'
             else:
-                retval += str(clears) + locale.QUERY_CLEARS + '/' + str(plays) + locale.QUERY_PLAYS + ' ' + str(
-                    round((int(clears) / int(deaths)) * 100, 2)) + '%\n'
-            retval += locale.QUERY_TAGS + level_data['etiquetas'] + locale.QUERY_STYLE + styles[
-                int(level_data['apariencia'])]
+                retval += f'{clears}{locale.QUERY_CLEARS} / {plays}{locale.QUERY_PLAYS}  ' \
+                          f'{round((int(clears) / int(deaths)) * 100, 2)}%\n'
+            retval += f'{locale.QUERY_TAGS}{level_data["etiquetas"]}' \
+                      f'{locale.QUERY_STYLE}{styles[int(level_data["apariencia"])]}'
             await message.reply(retval)
             return
     except Exception as e:
-        await message.reply(locale.UNKNOWN_ERROR + str(e))
+        await message.reply(locale.UNKNOWN_ERROR + '\n' + str(e))
         return
 
 
@@ -290,8 +294,10 @@ async def command_stats(message: discord.Message, locale):
         else:
             username = message.content.split(' ')[1].strip()
             request_body = {'username': username}
-        response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/info',
-                                      json=request_body).json()
+        async with aiohttp.request(method='POST',
+                                   url=f'{ENGINE_TRIBE_HOST}/user/info',
+                                   json=request_body) as response:
+            response_json = await response.json()
         if 'error_type' in response_json:
             await message.reply(locale.STATS_NOT_FOUND)
             return
@@ -307,32 +313,38 @@ async def command_stats(message: discord.Message, locale):
                 all_dislikes = 0
                 all_plays = 0
                 retval += '\n'
-                levels_data = requests.post(url=ENGINE_TRIBE_HOST + '/stages/detailed_search',
-                                            data={'auth_code': locale.BOT_AUTH_CODE, 'author': user_data['username']},
-                                            headers={'Content-Type': 'application/x-www-form-urlencoded',
-                                                     'User-Agent': 'EngineBot/1'}).json()
+                async with aiohttp.request(method='POST',
+                                           url=f'{ENGINE_TRIBE_HOST}/stages/detailed_search',
+                                           data={'auth_code': locale.BOT_AUTH_CODE, 'author': user_data['username']},
+                                           headers={'Content-Type': 'application/x-www-form-urlencoded',
+                                                    'User-Agent': 'EngineBot/1'}) as response:
+                    levels_data = await response.json()
                 for level_data in levels_data['result']:
-                    retval += '- ' + level_data['name'] + ' ' + str(level_data['likes']) + '❤ ' + str(
-                        level_data['dislikes']) + '💙\n  ' + '`' + level_data['id'] + '`'
+                    retval += f'- **{level_data["name"]}**\n' \
+                              f'  {level_data["likes"]}❤  {level_data["dislikes"]}💙\n' \
+                              f'  `{level_data["id"]}`'
                     if int(level_data['featured']) == 1:
-                        retval += locale.QUERY_FEATURED
-                    retval += '\n'
+                        retval += f' ({locale.QUERY_FEATURED})\n'
+                    else:
+                        retval += '\n'
+                    retval += f'  {locale.QUERY_TAGS} {level_data["etiquetas"]}\n'
                     all_likes += int(level_data['likes'])
                     all_dislikes += int(level_data['dislikes'])
                     all_plays += int(level_data['intentos'])
-                    retval += '  ' + locale.QUERY_TAGS + level_data['etiquetas'] + '\n'
                 retval += locale.STATS_TOTAL_LIKES + str(all_likes) + locale.STATS_TOTAL_DISLIKES + str(
                     all_dislikes) + locale.STATS_TOTAL_PLAYS + str(all_plays)
                 await message.reply(retval)
                 return
     except Exception as e:
-        await message.reply(locale.UNKNOWN_ERROR + str(e))
+        await message.reply(locale.UNKNOWN_ERROR + '\n' + str(e))
         return
 
 
 async def command_server(message: discord.Message):
     try:
-        response_json = requests.get(url=ENGINE_TRIBE_HOST + '/server_stats').json()
+        async with aiohttp.request(method='GET',
+                                   url=f'{ENGINE_TRIBE_HOST}/server_stats') as response:
+            response_json = await response.json()
         retval = '🗄️ **Server Statistics**\n'
         retval += f'🐧 OS: `{response_json["os"]}`\n'
         retval += f'🐍 Python Version: `{response_json["python"]}`\n'
@@ -348,7 +360,8 @@ async def command_server(message: discord.Message):
 
 
 async def command_error(message: discord.Message):
-    await message.reply('❌ Comando incorrecto. ¡Por favor revise el mensaje anclado!')
+    await message.reply('❌ Comando incorrecto. '
+                        'Verifique el comando en busca de **errores tipográficos** y verifique el **mensaje anclado**.')
     return
 
 
