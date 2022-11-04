@@ -98,7 +98,7 @@ async def command_register(message: discord.Message, locale):
                 if 'success' in response_json:
                     await message.reply(f'{locale.MODIFICATION_SUCCESS} `{str(response_json["username"])}` .')
                 else:
-                    await message.reply(f'{locale.MODIFICATION_FAILED} `{str(response_json["username"])}` .')
+                    await message.reply(f'{locale.MODIFICATION_FAILED}.')
                 await message.delete()
                 return
             else:
