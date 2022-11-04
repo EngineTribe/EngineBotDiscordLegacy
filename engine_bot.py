@@ -57,8 +57,16 @@ async def command_register(message: discord.Message, locale):
                 await message.delete()
                 return
             raw_register_code = message.content.split(' ')[1].strip()
-            register_code = base64.b64decode(raw_register_code.encode()).decode() \
-                .replace('\r\n', '\n').replace('\r', '\n').split("\n")
+            try:
+                register_code = base64.b64decode(raw_register_code.encode()).decode() \
+                    .replace('\r\n', '\n').replace('\r', '\n').split("\n")
+            except:
+                try:
+                    register_code = base64.b64decode((raw_register_code+'=').encode()).decode() \
+                        .replace('\r\n', '\n').replace('\r', '\n').split("\n")
+                except:
+                    register_code = base64.b64decode((raw_register_code + '==').encode()).decode() \
+                        .replace('\r\n', '\n').replace('\r', '\n').split("\n")
             operation = register_code[0]
             username = register_code[1]
             password_hash = register_code[2]
