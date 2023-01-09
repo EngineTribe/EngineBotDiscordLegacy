@@ -187,9 +187,12 @@ async def command_permission(message: discord.Message, locale):
                 value = True
             else:
                 value = False
-            response_json = requests.post(url=ENGINE_TRIBE_HOST + '/user/update_permission',
-                                          json={'username': username, 'permission': permission,
-                                                'value': value, 'api_key': ENGINE_TRIBE_API_KEY}).json()
+
+            async with aiohttp.request(method='POST',
+                                       url=ENGINE_TRIBE_HOST + '/user/update_permission',
+                                       json={'username': username, 'permission': permission,
+                                             'value': value, 'api_key': ENGINE_TRIBE_API_KEY}) as response:
+                response_json = await response.json()
             if 'success' in response_json:
                 await message.reply(
                     '✅ Updated ' + username + ' \'s ' + permission + ' to ' + str(value) + '.')
