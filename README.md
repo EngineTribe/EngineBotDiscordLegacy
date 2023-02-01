@@ -1,2 +1,2 @@
 # Engine-bot-Discord
-deprecated, see https://github.com/jemgdev/EngineTribeBot
+deprecated, see https://github.com/EngineTribe/EngineBotDiscord
